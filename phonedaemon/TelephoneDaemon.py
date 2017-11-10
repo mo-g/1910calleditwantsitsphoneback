@@ -10,14 +10,14 @@ import signal
 import sys
 import yaml
 
-from phonedaemon.modules.Ringtone import Ringtone
+from phonedaemon.modules.Ringer import Ringer
 from phonedaemon.modules.RotaryDial import RotaryDial
 from phonedaemon.modules.Webserver import Webserver
 from phonedaemon.modules.DialTimer import DialTimer
-from phonedaemon.modules.linphone import Wrapper
+#from phonedaemon.modules.linphone import Wrapper
 
 # alternative SIP-implementation
-# from modules.pjsip.SipClient import SipClient
+from modules.pjsip.SipClient import SipClient
 
 
 CALLBACK_QUEUE = Queue.Queue()
@@ -56,20 +56,28 @@ class TelephoneDaemon(object):
         signal.signal(signal.SIGINT, self.OnSignal)
 
         # TODO: Select tone/hardware ring when latter is implemented.
-        self.app_ringer = Ringtone(self.config["soundfiles"])
+        self.app_ringer = Ringer(self.config["soundfiles"],
+                                   self.config["alsadevices"])
 
         # This is to indicate boot complete. Not very realistic, but fun.
         # self.Ringtone.playfile(config["soundfiles"]["startup"])
-
+        
+        self.app_ringer.starthandset("dialtone") # TESTESTESTESTEST REMOVE WHEN YOU MADE IT WORK.
+        #import time
+        #time.sleep(5)
+        #self.app_ringer.earpiece.stop() # END OF TESTESTESTESTESTESTESTESTESTESTESTESTEST BLOCK
+        
+        """
         # Rotary dial
         self.RotaryDial = RotaryDial()
         self.RotaryDial.register_callback(NumberCallback=self.got_digit,
                                          OffHookCallback=self.off_hook,
                                          OnHookCallback=self.on_hook,
                                          OnVerifyHook=self.on_verify_hook)
-
+        """
         # TODO: Way to select SIP backend programmatically/flagly.
 
+        """
         self.app_sip_client = Wrapper.Wrapper()
         self.app_sip_client.StartLinphone()
         self.app_sip_client.SipRegister(self.config["sip"]["username"],
@@ -82,7 +90,7 @@ class TelephoneDaemon(object):
 
         # Start SipClient thread
         self.app_sip_client.start()
-
+        """
         # Web interface to enable remote configuration and debugging.
         self.app_webserver = Webserver(self)
 

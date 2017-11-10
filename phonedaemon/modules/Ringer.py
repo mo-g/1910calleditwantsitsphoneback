@@ -4,7 +4,72 @@ import alsaaudio
 import wave
 import os
 
-class Ring:
+
+class Device(object):
+    """
+    This class represents an Alsa device as a playback target for the class.
+    Each ringer will be created as an object for use in the ringer class.
+    """
+
+    device = None
+    play = False
+
+    def __init__(self, device):
+        """
+        Create an alsa object for the sound device.
+        """
+        self.device = alsaaudio.PCM(card=device)
+
+    def play_once(self, source):
+        '''
+        Play a file for 320 samples, or until stop() called.
+        '''
+        stream = wave.open(source, 'rb')
+        self.device.setchannels(stream.getnchannels())
+        self.device.setrate(stream.getframerate())
+        self.device.setperiodsize(320)
+        data = stream.readframes(320)
+        self.play = True
+        while data and self.play:
+            self.device.write(data)
+            data = stream.readframes(320)
+        stream.rewind()
+        stream.close()
+
+    def play_loop(self, source):
+        '''
+        Play a file on loop until stop() called.
+        '''
+        stream = wave.open(source, 'rb')
+        self.device.setchannels(stream.getnchannels())
+        self.device.setrate(stream.getframerate())
+        self.device.setperiodsize(320)
+        self.play = True
+        while self.play:
+            data = stream.readframes(320)
+            while data:
+                self.device.write(data)
+                data = stream.readframes(320)
+
+            stream.rewind()
+            time.sleep(2)
+
+    def stop(self):
+        '''
+        
+        '''
+        self.play = False
+
+    def close(self):
+        """
+        This should be called on any abnormal hangup. I also don't know if I
+        need to be explicitly allowing access for the SIP layer once I've 
+        finished playing on the earphone device.
+        """
+        self.device.close()
+
+
+class Ring(object):
     """
     Superclass to support both mechanical ringers and virtual ringers. Should
     handle all the stuff about 'Should I ring', and interfacing with the
@@ -14,6 +79,7 @@ class Ring:
     for their specific hardware implementations.
     """
 
+
 class Ringer(Ring):
     """
     Stub class to implement software control for a hardware ringer, like the
@@ -21,7 +87,8 @@ class Ringer(Ring):
     20th century.
     """
 
-class Ringtone(Ring):
+
+class Ringer(Ring):
     """
     Class to implement a software ringer that outputs over ALSA. Should get the
     ALSA device name from config.
@@ -40,8 +107,10 @@ class Ringtone(Ring):
 
     sound_files = None
 
-    def __init__(self, sound_files):
+    ringer = None
+    earpiece = None
 
+    def __init__(self, sound_files, alsa_devices):
         current_path = os.path.dirname(os.path.abspath(__file__))
         parent_path = os.path.abspath(os.path.join(current_path, os.pardir))
         self.tone_path = os.path.join(parent_path, "ringtones")
@@ -51,6 +120,9 @@ class Ringtone(Ring):
         for sound in self.sound_files:
             self.sound_files[sound] = os.path.join(self.tone_path,
                                                    self.sound_files[sound])
+
+        self.ringer = Device(alsa_devices["ringer"])
+        self.earpiece = Device(alsa_devices["earpiece"])
 
     def start(self):
         self.shouldring = 1
@@ -81,19 +153,8 @@ class Ringtone(Ring):
 
     def playhandset(self):
         print "Starting dialtone"
-        wv = wave.open(self.handsetfile)
-        # TODO: Get this from config.
-        device = alsaaudio.PCM(card="plug:external")
-        #device.setchannels(wv.getnchannels())
-        #device.setrate(wv.getframerate())
-        #device.setperiodsize(320)
 
-        data = wv.readframes(320)
-        while data and self.shouldplayhandset:
-            device.write(data)
-            data = wv.readframes(320)
-        wv.rewind()
-        wv.close()
+        self.earpiece.play_loop(self.sound_files["dialtone"])
 
 
     def playfile(self, tone):
@@ -116,10 +177,7 @@ class Ringtone(Ring):
             self.ringfile.rewind()
         else:
             self.ringfile = wave.open(self.sound_files["ringtone"], 'rb')
-            self.device = alsaaudio.PCM(card="pulse")
-            self.device.setchannels(self.ringfile.getnchannels())
-            self.device.setrate(self.ringfile.getframerate())
-            self.device.setperiodsize(320)
+
 
 
         while self.shouldring:
