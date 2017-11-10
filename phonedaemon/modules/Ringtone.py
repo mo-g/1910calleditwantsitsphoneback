@@ -38,14 +38,19 @@ class Ringtone(Ring):
     handsetfile = None
     timerHandset = None
 
-    config = None
+    sound_files = None
 
-    def __init__(self, config):
-        self.config = config
+    def __init__(self, sound_files):
+
         current_path = os.path.dirname(os.path.abspath(__file__))
         parent_path = os.path.abspath(os.path.join(current_path, os.pardir))
         self.tone_path = os.path.join(parent_path, "ringtones")
         print "[INFO] Loading ringtones from path:", self.tone_path
+
+        self.sound_files = sound_files
+        for sound in self.sound_files:
+            self.sound_files[sound] = os.path.join(self.tone_path,
+                                                   self.sound_files[sound])
 
     def start(self):
         self.shouldring = 1
@@ -58,9 +63,9 @@ class Ringtone(Ring):
         if self.ringtone is not None:
             self.ringtone.cancel()
 
-    def starthandset(self, file):
+    def starthandset(self, tone):
         self.shouldplayhandset = 1
-        self.handsetfile = file
+        self.handsetfile = self.sound_files[tone]
         if self.timerHandset is not None:
             print "[RINGTONE] Handset already playing?"
             return
@@ -91,8 +96,8 @@ class Ringtone(Ring):
         wv.close()
 
 
-    def playfile(self, file):
-        wv = wave.open(file)
+    def playfile(self, tone):
+        wv = wave.open(self.sound_files[tone])
         # TODO: Get from config, but should NOT be Pulseaudio.
         self.device = alsaaudio.PCM(card="pulse")
         self.device.setchannels(wv.getnchannels())
@@ -110,7 +115,7 @@ class Ringtone(Ring):
         if self.ringfile is not None:
             self.ringfile.rewind()
         else:
-            self.ringfile = wave.open(self.config["soundfiles"]["ringtone"], 'rb')
+            self.ringfile = wave.open(self.sound_files["ringtone"], 'rb')
             self.device = alsaaudio.PCM(card="pulse")
             self.device.setchannels(self.ringfile.getnchannels())
             self.device.setrate(self.ringfile.getframerate())
