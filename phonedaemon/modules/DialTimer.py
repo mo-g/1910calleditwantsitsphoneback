@@ -41,8 +41,10 @@ class DialTimer(object):
         self.end_of_timer_callback()
 
     # Handles the callbacks we're supplying
-    def register_callback(self, callback):
+    def register_callback(self, callback, timeout_length=0):
         """
         Register callback for timer. This is probably also super-unnecessary.
         """
         self.end_of_timer_callback = callback
+        if timeout_length:
+            self.timeout_length = timeout_length
