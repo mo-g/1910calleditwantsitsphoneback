@@ -151,7 +151,7 @@ This is the Daemon class, it sets up the sip connection and waits for events.
        """
        
        
-       self.DialTimer.Reset() #Reset the clock that waits for end of dialling.
+       self.DialTimer.reset() #Reset the clock that waits for end of dialling.
 
 
     def OnTimerExpired(self):
