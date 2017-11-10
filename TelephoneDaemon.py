@@ -9,6 +9,7 @@ from threading import Timer
 from modules.Ringtone import Ringtone
 from modules.RotaryDial import RotaryDial
 from modules.Webserver import Webserver
+from modules.DialTimer import DialTimer
 from modules.linphone import Wrapper
 # alternative SIP-implementation
 #from modules.pjsip.SipClient import SipClient
@@ -16,6 +17,9 @@ from modules.linphone import Wrapper
 callback_queue = Queue.Queue()
 
 class TelephoneDaemon:
+"""
+This is the Daemon class, it sets up the sip connection and waits for events. 
+"""
     # Number to be dialed
     dial_number = ""
 
@@ -28,6 +32,7 @@ class TelephoneDaemon:
     RotaryDial = None
     SipClient = None
     WebServer = None
+    DialTimer = None
 
     config = None
 
@@ -38,7 +43,10 @@ class TelephoneDaemon:
 
         signal.signal(signal.SIGINT, self.OnSignal)
 
-        # Ring tone
+        """
+        So, here we need to allow selection of hardware ringing. This is fine
+        for now though, so I won't change it till I implement ringing.
+        """
         self.Ringtone = Ringtone(self.config)
 
         # This is to indicate boot complete. Not very realistic, but fun.
@@ -48,6 +56,15 @@ class TelephoneDaemon:
         self.RotaryDial = RotaryDial()
         self.RotaryDial.RegisterCallback(NumberCallback = self.GotDigit, OffHookCallback = self.OffHook, OnHookCallback = self.OnHook, OnVerifyHook = self.OnVerifyHook)
 
+        """
+        Need a Timer setup here.
+        """
+        self.DialTimer = None
+
+        """
+        Need a system here to select the SIP backend programmatically, or by
+        a code flag in the worst case.
+        """
         self.SipClient = Wrapper.Wrapper()
         self.SipClient.StartLinphone()
         self.SipClient.SipRegister(self.config["sip"]["username"], self.config["sip"]["hostname"], self.config["sip"]["password"])
@@ -118,18 +135,37 @@ class TelephoneDaemon:
         self.dial_number += str(digit)
         print "[NUMBER] We have: %s" % self.dial_number
 
+        """
         # Shutdown command, since our filesystem isn't read only (yet?)
         # This hopefully prevents dataloss.
         # TODO: stop rebooting..
+        
+        Commented for probable removal. I may add a reboot command to the web
+        interface, but the device is set up for SSH, and I don't forsee a
+        situation where a clean reboot is needed but ssh is inaccessible.
+        
         if self.dial_number == "0666":
             self.Ringtone.playfile(self.config["soundfiles"]["shutdown"])
             os.system("halt")
+        """
 
+
+        """
+        This is bad. we need a better way to detect when dialling is completed
+        in order to be agnostic about number length, allow operator calls, etc
+        
         if len(self.dial_number) == 8:
             if self.offHook:
                 print "[PHONE] Dialing number: %s" % self.dial_number
                 self.SipClient.SipCall(self.dial_number)
                 self.dial_number = ""
+       """
+       
+       
+       self.DialTimer.Reset() #Reset the clock that waits for end of dialling.
+
+
+    def 
 
     def OnSignal(self, signal, frame):
         print "[SIGNAL] Shutting down on %s" % signal
