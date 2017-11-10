@@ -1,11 +1,9 @@
 import os
 import Queue
-import threading
 import signal
 import sys
 import yaml
 
-from threading import Timer
 from modules.Ringtone import Ringtone
 from modules.RotaryDial import RotaryDial
 from modules.Webserver import Webserver
@@ -57,11 +55,6 @@ This is the Daemon class, it sets up the sip connection and waits for events.
         self.RotaryDial.RegisterCallback(NumberCallback = self.GotDigit, OffHookCallback = self.OffHook, OnHookCallback = self.OnHook, OnVerifyHook = self.OnVerifyHook)
 
         """
-        Need a Timer setup here.
-        """
-        self.DialTimer = None
-
-        """
         Need a system here to select the SIP backend programmatically, or by
         a code flag in the worst case.
         """
@@ -91,10 +84,11 @@ This is the Daemon class, it sets up the sip connection and waits for events.
         self.offHook = True
         # Reset current number when off hook
         self.dial_number = ""
-
-
-        self.offHookTimeoutTimer = Timer(5, self.OnOffHookTimeout)
-        self.offHookTimeoutTimer.start()
+        
+        """
+        Need a Timer setup here.
+        """
+        self.DialTimer = None
 
         # TODO: State for ringing, don't play tone if ringing :P
         print "Try to start dialtone"
@@ -123,11 +117,6 @@ This is the Daemon class, it sets up the sip connection and waits for events.
 
     def OnSelfHungupCall(self):
         print "[HUNGUP] Local disconnected the call"
-
-    def OnOffHookTimeout(self):
-        print "[OFFHOOK TIMEOUT]"
-        #self.Ringtone.stophandset()
-        #self.Ringtone.starthandset(self.config["soundfiles"]["timeout"])
 
     def GotDigit(self, digit):
         print "[DIGIT] Got digit: %s" % digit
@@ -165,7 +154,12 @@ This is the Daemon class, it sets up the sip connection and waits for events.
        self.DialTimer.Reset() #Reset the clock that waits for end of dialling.
 
 
-    def 
+    def OnTimerExpired(self):
+        print "[OFFHOOK TIMEOUT]"
+        if self.dial_number:
+            print "[PHONE] Dialling number: %s" % self.dial_number
+            self.SipClient.SipCall(self.dial_number)
+        self.dial_number = ""
 
     def OnSignal(self, signal, frame):
         print "[SIGNAL] Shutting down on %s" % signal
