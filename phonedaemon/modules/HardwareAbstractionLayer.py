@@ -58,13 +58,10 @@ class HardwareAbstractionLayer(object):
 
         # Listen for on/off hooks
         GPIO.setup(self.pin_onhook, GPIO.IN)
-        GPIO.add_event_detect(self.pin_onhook,
+        GPIO.add_event_detect(self.pin_earpiece,
                               GPIO.BOTH,
                               callback=self.earpiece_event,
                               bouncetime=100)
-
-        self.onhook_timer = Timer(2, self.verifyHook)
-        self.onhook_timer.start()
 
     def clean_exit(self):
         """
