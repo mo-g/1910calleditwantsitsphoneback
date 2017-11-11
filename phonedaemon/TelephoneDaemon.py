@@ -11,17 +11,14 @@ import sys
 import yaml
 
 from phonedaemon.modules.Ringer import Ringer
-from phonedaemon.modules.RotaryDial import RotaryDial
+from phonedaemon.modules.HardwareAbstractionLayer \
+    import HardwareAbstractionLayer
 from phonedaemon.modules.Webserver import Webserver
 from phonedaemon.modules.DialTimer import DialTimer
-#from phonedaemon.modules.linphone import Wrapper
-
-# alternative SIP-implementation
 from modules.pjsip.SipClient import SipClient
 
 
 CALLBACK_QUEUE = Queue.Queue()
-
 
 class TelephoneDaemon(object):
     """
@@ -35,7 +32,7 @@ class TelephoneDaemon(object):
 
     off_hook = False  # Flag: Is the earpiece on or off the hook?
 
-    app_rotary_dial = None
+    app_hal = None
     app_sip_client = None
     app_webserver = None
     app_timer = None
@@ -57,10 +54,10 @@ class TelephoneDaemon(object):
 
         # TODO: Select tone/hardware ring when latter is implemented.
         self.app_ringer = Ringer(self.config["soundfiles"],
-                                   self.config["alsadevices"])
+                                 self.config["alsadevices"])
 
         # This is to indicate boot complete. Not very realistic, but fun.
-        # self.Ringtone.playfile(config["soundfiles"]["startup"])
+        # self.Ringer.playfile(config["soundfiles"]["startup"])
         
         self.app_ringer.starthandset("dialtone") # TESTESTESTESTEST REMOVE WHEN YOU MADE IT WORK.
         #import time
