@@ -160,7 +160,7 @@ class TelephoneDaemon(object):
 
     def sigint_received(self, signal, frame):
         print "[SIGNAL] Shutting down on %s" % signal
-        #self.app_hal.StopVerifyHook()  # Not using this right now.
+        self.app_hal.clean_exit()  # Not using this right now.
         #self.app_sip_client.StopLinphone()  # Replace with pjsip clean exit
         self.app_ringer.clean_exit()
         sys.exit(0)

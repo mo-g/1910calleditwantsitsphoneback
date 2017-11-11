@@ -23,22 +23,23 @@ class HardwareAbstractionLayer(object):
 
     pulse_count = 0  # Count the number of pulses detected
 
-    dialling_timer = None  # Timer object for dialling.
     onhook_timer = None  # Timer object to ensure we're on hook
     debounce_timer = None  # Timer object for debounce cleaning.
 
     last_input = 0
-    digit_timeout = 0.9  # Assume rotation is done after 900ms
 
     def __init__(self):
-        # Set GPIO mode to Broadcom SOC numbering
-        GPIO.setmode(GPIO.BCM)
+        GPIO.setmode(GPIO.BCM)  # Broadcom pin numbers.
 
-        # Listen for rotary movements
-        GPIO.setup(self.pin_rotary, GPIO.IN)
-        GPIO.add_event_detect(self.pin_rotary,
+        GPIO.setup(self.pin_dialling, GPIO.IN) #Listen for dialling start/end.
+        GPIO.add_event_detect(self.pin_dialling,
                               GPIO.BOTH,
-                              callback=self.detect_click)
+                              callback=self.dialling_state)
+
+        GPIO.setup(self.pin_digits, GPIO.IN) #Listen for digits.
+        GPIO.add_event_detect(self.pin_digits,
+                              GPIO.BOTH,
+                              callback=self.detect_clicks)
 
         # Listen for on/off hooks
         GPIO.setup(self.pin_onhook, GPIO.IN)
@@ -50,10 +51,28 @@ class HardwareAbstractionLayer(object):
         self.onhook_timer = Timer(2, self.verifyHook)
         self.onhook_timer.start()
 
-    def detect_click(self, channel):
+    def clean_exit(self):
+        """
+        Safely close the GPIO when closing the app.
+        """
+        GPIO.cleanup()
+
+    def dialling_state(self, channel):
+        """
+        GPIO detects whether the rotary dial is active.
+        """
+        state = GPIO.input(channel)
+        
+
+    def detect_clicks(self, channel):
         """
         GPIO detects a state change on the rotary detection pin. This is where
         I count the clicks and assemble a digit from the data.
+        """
+
+    def self.earpiece.event(self):
+        """
+        GPIO detects a state change
         """
 
     def register_callback(self,
