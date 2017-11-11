@@ -58,16 +58,12 @@ class TelephoneDaemon(object):
             print "[INFO] Using dialling timeout value:", self.dialling_timeout
 
         self.app_timer = DialTimer(timeout_length=self.dialling_timeout)
-
-        signal.signal(signal.SIGINT, self.sigint_received)
-
-        self.app_webserver = Webserver(self)
-
         # TODO: Select tone/hardware ring when latter is implemented.
         self.app_ringer = AlsaRinger(self.config["soundfiles"],
                                  self.config["alsadevices"])
-
         self.app_hal = HardwareAbstractionLayer()
+        signal.signal(signal.SIGINT, self.sigint_received)
+        self.app_webserver = Webserver(self)
 
         # TODO: We're going to ignore all SIP stuff till we have the HAL good.
         """
@@ -86,7 +82,6 @@ class TelephoneDaemon(object):
         """
 
         raw_input("Waiting.\n")
-
 
     def earpiece_lifted(self):
         """
