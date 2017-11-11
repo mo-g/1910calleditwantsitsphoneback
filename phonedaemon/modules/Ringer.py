@@ -84,7 +84,6 @@ class Device(object):
         self.kill = True
         time.sleep(0.3)
         self.device.close()
-        print "closed ALSA target."
 
 
 class Ringer(object):
@@ -161,7 +160,6 @@ class AlsaRinger(Ringer):
         """
         self.earpiece.close()
         self.ringer.close()
-        print "finished clean exit of ringer."
 
     def stop_earpiece(self):
         """

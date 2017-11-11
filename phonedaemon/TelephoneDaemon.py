@@ -49,30 +49,14 @@ class TelephoneDaemon(object):
 
         self.app_timer = DialTimer(timeout_length=self.dialling_timeout)
 
-        self.off_hook
         signal.signal(signal.SIGINT, self.OnSignal)
 
         # TODO: Select tone/hardware ring when latter is implemented.
         self.app_ringer = AlsaRinger(self.config["soundfiles"],
                                  self.config["alsadevices"])
 
-        # This is to indicate boot complete. Not very realistic, but fun.
-        # self.Ringer.playfile(config["soundfiles"]["startup"])
-        
-        self.app_ringer.play_dialtone() # TESTESTESTESTEST REMOVE WHEN YOU MADE IT WORK.
-        #import time
-        #time.sleep(5)
-        #self.app_ringer.earpiece.stop() # END OF TESTESTESTESTESTESTESTESTESTESTESTESTEST BLOCK
-        
-        """
-        # Rotary dial
-        self.app_hal = HardwareAbstractionLayer()
-        self.app_hal.register_callback(NumberCallback=self.got_digit,
-                                         OffHookCallback=self.off_hook,
-                                         OnHookCallback=self.on_hook,
-                                         OnVerifyHook=self.on_verify_hook)
-        """
-        # TODO: Way to select SIP backend programmatically/flagly.
+        self.app_webserver = Webserver(self)
+
 
         """
         self.app_sip_client = Wrapper.Wrapper()
@@ -88,8 +72,6 @@ class TelephoneDaemon(object):
         # Start SipClient thread
         self.app_sip_client.start()
         """
-        # Web interface to enable remote configuration and debugging.
-        #self.app_webserver = Webserver(self)
 
         raw_input("Waiting.\n")
 
