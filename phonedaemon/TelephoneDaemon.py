@@ -10,7 +10,7 @@ import signal
 import sys
 import yaml
 
-from phonedaemon.modules.Ringer import Ringer
+from phonedaemon.modules.Ringer import AlsaRinger
 from phonedaemon.modules.HardwareAbstractionLayer \
     import HardwareAbstractionLayer
 from phonedaemon.modules.Webserver import Webserver
