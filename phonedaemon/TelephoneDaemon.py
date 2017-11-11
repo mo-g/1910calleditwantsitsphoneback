@@ -59,14 +59,15 @@ class TelephoneDaemon(object):
 
         self.app_timer = DialTimer(timeout_length=self.dialling_timeout)
 
-        signal.signal(signal.SIGINT, self.OnSignal)
+        signal.signal(signal.SIGINT, self.sigint_received)
+
+        self.app_webserver = Webserver(self)
 
         # TODO: Select tone/hardware ring when latter is implemented.
         self.app_ringer = AlsaRinger(self.config["soundfiles"],
                                  self.config["alsadevices"])
 
-        self.app_webserver = Webserver(self)
-
+        self.app_hal = HardwareAbstractionLayer()
 
         # TODO: We're going to ignore all SIP stuff till we have the HAL good.
         """
@@ -153,7 +154,8 @@ class TelephoneDaemon(object):
 
     def remote_hangup(self):
         """
-        
+        The SIP client reports that the call terminated normally by remote
+        hang up. Play the dialtone for retro fun.
         """
 
     def call_dropped(self):
@@ -161,7 +163,7 @@ class TelephoneDaemon(object):
         The SIP client reports a dropped call.
         """
 
-    def OnSignal(self, signal, frame):
+    def sigint_received(self, signal, frame):
         print "[SIGNAL] Shutting down on %s" % signal
         #self.app_hal.StopVerifyHook()  # Not using this right now.
         #self.app_sip_client.StopLinphone()  # Replace with pjsip clean exit
