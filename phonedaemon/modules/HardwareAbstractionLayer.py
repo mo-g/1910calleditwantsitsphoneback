@@ -84,7 +84,7 @@ class HardwareAbstractionLayer(object):
         GPIO detects a state change
         """
 
-    def register_callback(self):
+    def register_callbacks(self):
         """
         Register callbacks for the interface with the calling application
         """
