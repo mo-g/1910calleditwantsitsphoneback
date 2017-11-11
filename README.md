@@ -27,6 +27,26 @@ One key difference compared to the original app is that I'm finishing the pjsip 
 * Custom board to drive hardware bells, or custom power amp and speaker for
 playing simulated bell tones. (Uses BCM DAC)
 
+## Raspi Pins Used
+
+### Fe-Pi
+* SDA (BCM 2, Board 3)
+* SCL (BCM 3, Board 5)
+* LRCLK (BCM 19, Board 35)
+* BCLK (BCM 18, Board 12)
+* DIN (BCM 20, Board 38)
+* DOUT (BCM 21, Board 40)
+
+### Analogue Audio
+
+* PWM1 (BCM 13, Board 33)
+
+### Switches
+
+* RotaryDigit (BCM 17, Board 11)
+* RotaryDialling (BCM 27, Board 13)
+* EarpieceHook (BCM 22, Board 15)
+
 ---
 
 ## Raspberry Pi Setup

@@ -10,16 +10,31 @@
 from threading import Timer
 from RPi import GPIO
 
+
+PROJECT = "astral"
+
+
 class HardwareAbstractionLayer(object):
     """
     Superclass to allow disambiguation between different implementations of
     dialer hardware from different phone conversion projects.
     """
-
-    # TODO: Why are these pins hardcoded? Should be config. So should Pi/not.
-    pin_earpiece = 3  # on/off hook events THESE PINS ARE BCM NOT HARDWARE
-    pin_digits = 4  # rotary data source. THESE PINS ARE BCM NOT HARDWARE
-    pin_dialling = None  # this is high when the dialler is off.
+    bcm_pins = {
+        "aseb": {
+            "earpiece": 3,
+            "digits": 4,
+            "dialling": None
+        },
+        "astral": {
+            "earpiece": 22,
+            "digits" : 17,
+            "dialling": 27
+        }
+    }
+    
+    pin_earpiece = bcm_pins[PROJECT]["earpiece"]  # on/off hook events
+    pin_digits = bcm_pins[PROJECT]["digits"]  # rotary data source
+    pin_dialling = bcm_pins[PROJECT]["dialling"]  # high if not dialling
 
     pulse_count = 0  # Count the number of pulses detected
 
@@ -70,23 +85,15 @@ class HardwareAbstractionLayer(object):
         I count the clicks and assemble a digit from the data.
         """
 
-    def self.earpiece.event(self):
+    def earpiece_event(self):
         """
         GPIO detects a state change
         """
 
-    def register_callback(self,
-                          NumberCallback,
-                          OffHookCallback,
-                          OnHookCallback,
-                          OnVerifyHook):
+    def register_callback(self):
         """
         Register callbacks for the interface with the calling application
         """
-        self.NumberCallback = NumberCallback
-        self.OffHookCallback = OffHookCallback
-        self.OnHookCallback = OnHookCallback
-        self.OnVerifyHook = OnVerifyHook
 
 
 class AstralHAL(HardwareAbstractionLayer):

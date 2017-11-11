@@ -65,6 +65,11 @@ class TelephoneDaemon(object):
         signal.signal(signal.SIGINT, self.sigint_received)
         self.app_webserver = Webserver(self)
 
+
+        self.app_hal.register_callbacks()
+
+
+
         # TODO: We're going to ignore all SIP stuff till we have the HAL good.
         """
         self.app_sip_client = SipClient()
