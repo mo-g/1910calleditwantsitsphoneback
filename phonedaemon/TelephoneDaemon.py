@@ -36,12 +36,14 @@ class TelephoneDaemon(object):
     config = None  # Contains config loaded from yaml.
     dialling_timeout = None  # How long off-hook before tim
 
-    dial_number = ""  # Stores the number to be dialled.
+    entered_digits = ""  # Stores the number to be dialled.
 
     off_hook = False  # Flag: Is the earpiece on or off the hook?
 
+    reserved_numbers = {}
+
     app_hal = None
-    app_sip_client = None
+    app_sipclient = None
     app_webserver = None
     app_timer = None
     app_ringer = None
@@ -85,115 +87,79 @@ class TelephoneDaemon(object):
         raw_input("Waiting.\n")
 
 
-    def earpiece_lifted:
+    def earpiece_lifted(self):
         """
         The user has lifted the earpiece. Start dialling.
         """
         print "[INFO] Handset lifted.
+        
+        """
+        if self.incoming_call:
+            # answer the call
+            return True
+        """
+        
+        entered_digits = ""
+        
+            # begin dialling
+            # start dialtone
     
-    def number_complete:
+    def call_number(self):
         """
-        The user has entered a number. Send to SIP or handle.
+        The user has entered a number. Send to SIP or handle internally.
         """
-        print [INFO] Number complete
+        print "[INFO] Calling number"
+        
+        self.app_sipclient.SipCall(self.entered_digits)
 
-    def timeout_reached:
+    def timeout_reached(self):
         """
-        The user has not entered a number. Play the timeout tone.
+        Check if the user has entered a number. Play the timeout tone.
         """
+        
+        if entered_digits:
+            self.call_number()
+            entered_digits = ""
+        print "[INFO] Number not entered."
         self.app_ringer.play_error()
+    
+    def digit_detected(self, digit):
+        """
+        The HAL has detected that a number has been dialled.
+        Reset the timer and append the digit to the number to be dialled.
+        """
+        print "[INFO] Got digit:", digit
+        entered_digits += digit
+        self.app_timer.reset()
 
-    def earpiece_replaced:
+    def earpiece_replaced(self):
         """
         The user has replaced the earpiece. Whatever you're doing. stop.
         Stop all tones, close SIP call, stop dialling.
         """
 
-    def call_failed:
+    def call_failed(self):
         """
         The SIP client returned an error on dialling. Stop all tones and play
         the error code.
         """
 
-    def incoming_call:
+    def incoming_call(self):
         """
         The SIP client reports an incoming call. Cancel dialling and play the
         ringtone. This should also trap the earpiece so that the call can be
         answered.
         """
 
-    def on_hook(self):
-        print "[PHONE] On hook"
-        self.offHook = False
-        self.Ringtone.stophandset()
-        # Hang up calls
-        if self.app_sip_client is not None:
-            self.app_sip_client.SipHangup()
-
-    def off_hook(self):
-        print "[PHONE] Off hook"
-        self.offHook = True
-        # Reset current number when off hook
-        self.dial_number = ""
-
-        self.app_timer.start()
-
-        # TODO: State for ringing, don't play tone if ringing :P
-        print "Try to start dialtone"
-        self.app_ringer.starthandset("dialtone")
-
-        self.app_ringer.stop()
-        if self.app_sip_client is not None:
-            self.app_sip_client.SipAnswer()
-
-    def on_verify_hook(self, state):
-        if not state:
-            self.offHook = False
-            self.app_ringer.stophandset()
-
-    def on_incoming_call(self):
-        print "[INCOMING]"
-        self.app_ringer.start()
-
-    def on_outgoing_call(self):
-        print "[OUTGOING] "
-
-    def on_remote_hungup_call(self):
-        print "[HUNGUP] Remote disconnected the call"
-        # Now we want to play busy-tone..
-        self.app_ringer.starthandset("busytone")
-
-    def on_self_hungup_call(self):
-        print "[HUNGUP] Local disconnected the call"
-
-    def got_digit(self, digit):
-        print "[DIGIT] Got digit: %s" % digit
-        self.app_ringer.stophandset()
-        self.dial_number += str(digit)
-        print "[NUMBER] We have: %s" % self.dial_number
-
-        self.app_timer.reset()  # Reset the end-of-dialling clock.
-
+    def remote_hangup(self):
         """
-        # Shutdown command, since our filesystem isn't read only (yet?)
-        # This hopefully prevents dataloss.
-        # TODO: stop rebooting..
-
-        Commented for probable removal. I may add a reboot command to the web
-        interface, but the device is set up for SSH, and I don't forsee a
-        situation where a clean reboot is needed but ssh is inaccessible.
-
-        if self.dial_number == "0666":
-            self.Ringtone.playfile(self.config["soundfiles"]["shutdown"])
-            os.system("halt")
+        
         """
 
-    def on_timer_end(self):
-        print "[OFFHOOK TIMEOUT]"
-        if self.dial_number:
-            print "[PHONE] Dialling number: %s" % self.dial_number
-            self.app_sip_client.SipCall(self.dial_number)
-        self.dial_number = ""
+    def call_dropped(self):
+        """
+        The SIP client reports a dropped call.
+        """
 
     def OnSignal(self, signal, frame):
         print "[SIGNAL] Shutting down on %s" % signal
