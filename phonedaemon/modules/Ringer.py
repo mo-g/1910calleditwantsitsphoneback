@@ -37,7 +37,7 @@ class Device(object):
         stream.rewind()
         stream.close()
 
-    def play_loop(self, source):
+    def play_loop(self, source, interval=None):
         '''
         Play a file on loop until stop() called.
         '''
@@ -53,7 +53,8 @@ class Device(object):
                 data = stream.readframes(320)
 
             stream.rewind()
-            time.sleep(2)
+            if interval:
+                time.sleep(interval)
 
     def stop(self):
         '''
