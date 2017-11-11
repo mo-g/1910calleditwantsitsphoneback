@@ -62,7 +62,9 @@ class TelephoneDaemon(object):
         self.app_ringer = AlsaRinger(self.config["soundfiles"],
                                  self.config["alsadevices"])
         self.app_hal = HardwareAbstractionLayer()
+        print "HAL started"
         signal.signal(signal.SIGINT, self.sigint_received)
+        print "signal caught"
         self.app_webserver = Webserver(self)
         print "Loaded webserver"
         self.app_hal.register_callbacks()
