@@ -53,13 +53,13 @@ class TelephoneDaemon(object):
         signal.signal(signal.SIGINT, self.OnSignal)
 
         # TODO: Select tone/hardware ring when latter is implemented.
-        self.app_ringer = Ringer(self.config["soundfiles"],
+        self.app_ringer = AlsaRinger(self.config["soundfiles"],
                                  self.config["alsadevices"])
 
         # This is to indicate boot complete. Not very realistic, but fun.
         # self.Ringer.playfile(config["soundfiles"]["startup"])
         
-        self.app_ringer.starthandset("dialtone") # TESTESTESTESTEST REMOVE WHEN YOU MADE IT WORK.
+        self.app_ringer.play_dialtone() # TESTESTESTESTEST REMOVE WHEN YOU MADE IT WORK.
         #import time
         #time.sleep(5)
         #self.app_ringer.earpiece.stop() # END OF TESTESTESTESTESTESTESTESTESTESTESTESTEST BLOCK
