@@ -39,6 +39,7 @@ playing simulated bell tones. (Uses BCM DAC)
 
 ### Analogue Audio
 
+* PWM0 (BCM 12, Board 32)
 * PWM1 (BCM 13, Board 33)
 
 ### Switches

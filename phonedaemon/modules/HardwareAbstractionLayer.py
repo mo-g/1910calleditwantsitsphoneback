@@ -11,6 +11,18 @@ from threading import Timer
 from RPi import GPIO
 
 
+BCM_PINS = {
+    "aseb": {
+        "earpiece": 3,
+        "digits": 4,
+        "dialling": None
+    },
+    "astral": {
+        "earpiece": 22,
+        "digits" : 17,
+        "dialling": 27
+    }
+}
 PROJECT = "astral"
 
 
@@ -19,29 +31,15 @@ class HardwareAbstractionLayer(object):
     Superclass to allow disambiguation between different implementations of
     dialer hardware from different phone conversion projects.
     """
-    bcm_pins = {
-        "aseb": {
-            "earpiece": 3,
-            "digits": 4,
-            "dialling": None
-        },
-        "astral": {
-            "earpiece": 22,
-            "digits" : 17,
-            "dialling": 27
-        }
-    }
-    
-    pin_earpiece = bcm_pins[PROJECT]["earpiece"]  # on/off hook events
-    pin_digits = bcm_pins[PROJECT]["digits"]  # rotary data source
-    pin_dialling = bcm_pins[PROJECT]["dialling"]  # high if not dialling
+
+    pin_earpiece = BCM_PINS[PROJECT]["earpiece"]  # on/off hook events
+    pin_digits = BCM_PINS[PROJECT]["digits"]  # rotary data source
+    pin_dialling = BCM_PINS[PROJECT]["dialling"]  # high if not dialling
 
     pulse_count = 0  # Count the number of pulses detected
 
     onhook_timer = None  # Timer object to ensure we're on hook
     debounce_timer = None  # Timer object for debounce cleaning.
-
-    last_input = 0
 
     def __init__(self):
         GPIO.setmode(GPIO.BCM)  # Broadcom pin numbers.
@@ -74,7 +72,6 @@ class HardwareAbstractionLayer(object):
         GPIO detects whether the rotary dial is active.
         """
         state = GPIO.input(channel)
-        
 
     def detect_clicks(self, channel):
         """
