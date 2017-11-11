@@ -91,7 +91,7 @@ class TelephoneDaemon(object):
         """
         The user has lifted the earpiece. Start dialling.
         """
-        print "[INFO] Handset lifted.
+        print "[INFO] Handset lifted."
         
         """
         if self.incoming_call:
