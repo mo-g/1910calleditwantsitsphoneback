@@ -1,6 +1,13 @@
 """
 This is the Daemon app that runs the a SIP phone on a Raspi with cool added
 hardware, like an Astral wallphone or an AS Elektrisk Bureau.
+
+Most of the threading is going to be via HardwareAbstractionLayer. That's
+where we need to asynchronously wait for interactions from the user. SipClient
+will logically also need to make asynchronous callbacks - 'we are connected,
+stop playing the ringing tone.
+
+WebServer is also going to have some callbacks.
 """
 
 
@@ -10,12 +17,13 @@ import signal
 import sys
 import yaml
 
+
 from phonedaemon.modules.Ringer import AlsaRinger
 from phonedaemon.modules.HardwareAbstractionLayer \
     import HardwareAbstractionLayer
 from phonedaemon.modules.Webserver import Webserver
 from phonedaemon.modules.DialTimer import DialTimer
-from modules.pjsip.SipClient import SipClient
+from phonedaemon.modules.pjsip.SipClient import SipClient
 
 
 CALLBACK_QUEUE = Queue.Queue()
@@ -58,22 +66,61 @@ class TelephoneDaemon(object):
         self.app_webserver = Webserver(self)
 
 
+        # TODO: We're going to ignore all SIP stuff till we have the HAL good.
         """
-        self.app_sip_client = Wrapper.Wrapper()
-        self.app_sip_client.StartLinphone()
+        self.app_sip_client = SipClient()
         self.app_sip_client.SipRegister(self.config["sip"]["username"],
                                         self.config["sip"]["hostname"],
                                         self.config["sip"]["password"])
-        self.app_sip_client.RegisterCallbacks(OnIncomingCall=self.on_incoming_call,
-                                              OnOutgoingCall=self.on_outgoing_call,
-                                              OnRemoteHungupCall=self.on_remote_hungup_call,
-                                              OnSelfHungupCall=self.on_self_hungup_call)
+        self.app_sip_client.RegisterCallbacks(
+            OnIncomingCall=self.on_incoming_call,
+            OnOutgoingCall=self.on_outgoing_call,
+            OnRemoteHungupCall=self.on_remote_hungup_call,
+            OnSelfHungupCall=self.on_self_hungup_call)
 
         # Start SipClient thread
         self.app_sip_client.start()
         """
 
         raw_input("Waiting.\n")
+
+
+    def earpiece_lifted:
+        """
+        The user has lifted the earpiece. Start dialling.
+        """
+        print "[INFO] Handset lifted.
+    
+    def number_complete:
+        """
+        The user has entered a number. Send to SIP or handle.
+        """
+        print [INFO] Number complete
+
+    def timeout_reached:
+        """
+        The user has not entered a number. Play the timeout tone.
+        """
+        self.app_ringer.play_error()
+
+    def earpiece_replaced:
+        """
+        The user has replaced the earpiece. Whatever you're doing. stop.
+        Stop all tones, close SIP call, stop dialling.
+        """
+
+    def call_failed:
+        """
+        The SIP client returned an error on dialling. Stop all tones and play
+        the error code.
+        """
+
+    def incoming_call:
+        """
+        The SIP client reports an incoming call. Cancel dialling and play the
+        ringtone. This should also trap the earpiece so that the call can be
+        answered.
+        """
 
     def on_hook(self):
         print "[PHONE] On hook"
