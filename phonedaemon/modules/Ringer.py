@@ -13,6 +13,7 @@ class Device(object):
 
     device = None
     play = False
+    kill = False
 
     def __init__(self, device):
         """
@@ -30,7 +31,7 @@ class Device(object):
         self.device.setperiodsize(320)
         data = stream.readframes(320)
         self.play = True
-        while data and self.play:
+        while data and self.play and not self.kill:
             self.device.write(data)
             data = stream.readframes(320)
         stream.rewind()
@@ -47,7 +48,7 @@ class Device(object):
         self.play = True
         while self.play:
             data = stream.readframes(320)
-            while data:
+            while data and not self.kill:
                 self.device.write(data)
                 data = stream.readframes(320)
 
@@ -66,7 +67,10 @@ class Device(object):
         need to be explicitly allowing access for the SIP layer once I've 
         finished playing on the earphone device.
         """
+        self.kill = True
+        time.sleep(0.3)
         self.device.close()
+        print "closed ALSA target."
 
 
 class Ring(object):
@@ -150,6 +154,14 @@ class Ringer(Ring):
         if self.timerHandset is not None:
             self.timerHandset.cancel()
             self.timerHandset = None
+    
+    def cleanexit(self):
+        """
+        Cleanly exit by stopping playback and closing any ALSA devices.
+        """
+        self.earpiece.close()
+        self.ringer.close()
+        print "finished clean exit of ringer."
 
     def playhandset(self):
         print "Starting dialtone"

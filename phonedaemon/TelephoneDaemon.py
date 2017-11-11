@@ -66,8 +66,8 @@ class TelephoneDaemon(object):
         
         """
         # Rotary dial
-        self.RotaryDial = RotaryDial()
-        self.RotaryDial.register_callback(NumberCallback=self.got_digit,
+        self.app_hal = HardwareAbstractionLayer()
+        self.app_hal.register_callback(NumberCallback=self.got_digit,
                                          OffHookCallback=self.off_hook,
                                          OnHookCallback=self.on_hook,
                                          OnVerifyHook=self.on_verify_hook)
@@ -89,7 +89,7 @@ class TelephoneDaemon(object):
         self.app_sip_client.start()
         """
         # Web interface to enable remote configuration and debugging.
-        self.app_webserver = Webserver(self)
+        #self.app_webserver = Webserver(self)
 
         raw_input("Waiting.\n")
 
@@ -168,8 +168,9 @@ class TelephoneDaemon(object):
 
     def OnSignal(self, signal, frame):
         print "[SIGNAL] Shutting down on %s" % signal
-        self.RotaryDial.StopVerifyHook()
-        self.app_sip_client.StopLinphone()
+        #self.app_hal.StopVerifyHook()  # Not using this right now.
+        #self.app_sip_client.StopLinphone()  # Replace with pjsip clean exit
+        self.app_ringer.cleanexit()
         sys.exit(0)
 
 
