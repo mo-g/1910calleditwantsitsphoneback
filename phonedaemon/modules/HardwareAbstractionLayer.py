@@ -57,7 +57,7 @@ class HardwareAbstractionLayer(object):
                               callback=self.detect_clicks)
 
         # Listen for on/off hooks
-        GPIO.setup(self.pin_onhook, GPIO.IN)
+        GPIO.setup(self.pin_earpiece, GPIO.IN)
         GPIO.add_event_detect(self.pin_earpiece,
                               GPIO.BOTH,
                               callback=self.earpiece_event,
