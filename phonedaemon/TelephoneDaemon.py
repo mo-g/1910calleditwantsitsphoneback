@@ -64,10 +64,9 @@ class TelephoneDaemon(object):
         self.app_hal = HardwareAbstractionLayer()
         signal.signal(signal.SIGINT, self.sigint_received)
         self.app_webserver = Webserver(self)
-
-
+        print "Loaded webserver"
         self.app_hal.register_callbacks()
-
+        print "callbacks HAL"
 
 
         # TODO: We're going to ignore all SIP stuff till we have the HAL good.
