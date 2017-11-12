@@ -11,44 +11,11 @@ from threading import Timer
 from RPi import GPIO
 
 
-BCM_PINS = {
-    "aseb": {
-        "earpiece": 3,
-        "digits": 4,
-        "dialling": None
-    },
-    "astral": {
-        "earpiece": 22,
-        "digits" : 17,
-        "dialling": 27
-    }
-}
-
-CONVERT = {
-    1:1,
-    2:2,
-    3:3,
-    4:4,
-    5:5,
-    6:6,
-    7:7,
-    8:8,
-    9:9,
-    10:0
-}
-
-PROJECT = "astral"
-
-
 class HardwareAbstractionLayer(object):
     """
     Superclass to allow disambiguation between different implementations of
     dialer hardware from different phone conversion projects.
     """
-
-    pin_earpiece = BCM_PINS[PROJECT]["earpiece"]  # on/off hook events
-    pin_digits = BCM_PINS[PROJECT]["digits"]  # rotary data source
-    pin_dialling = BCM_PINS[PROJECT]["dialling"]  # high if not dialling
 
     pulse_count = 0  # Count the number of pulses detected
 
@@ -58,9 +25,28 @@ class HardwareAbstractionLayer(object):
     dialling = False
     hook = False
 
+    pins = {
+        "earpiece": None,
+        "digits": None,
+        "dialling": None
+    }
+
     callback_digit = None
     callback_onhook = None
     callback_offhook = None
+    
+    pulse_table = {
+        1:1,
+        2:2,
+        3:3,
+        4:4,
+        5:5,
+        6:6,
+        7:7,
+        8:8,
+        9:9,
+        10:0
+    }
 
     def __init__(self):
         GPIO.setmode(GPIO.BCM)  # Broadcom pin numbers.
@@ -101,7 +87,7 @@ class HardwareAbstractionLayer(object):
             pulses = self.pulse_count
             if pulses % 2:
                 raise IOError("Count is not divisible by 2")
-            self.callback_digit(CONVERT[pulses])
+            self.callback_digit(self.pulse_table[pulses])
 
     def detect_clicks(self, channel):
         """
@@ -116,9 +102,10 @@ class HardwareAbstractionLayer(object):
         GPIO detects a state change
         """
         self.hook = bool(GPIO.input(channel))
-
-        # Are we on hook or off hook?
-        # If off hook, look for the dialling state.
+        if self.hook:
+            self.callback_onhook()
+        else:
+            self.callback_offhook()
 
     def register_callbacks(self,
                            callback_digit,
@@ -131,12 +118,18 @@ class HardwareAbstractionLayer(object):
         self.callback_onhook = callback_onhook
         self.callback_offhook = callback_offhook
 
+
 class AstralHAL(HardwareAbstractionLayer):
     """
     Subclass of HardwareAbstractionLayer to support the dialer in phones from
     the late period of Astral PLC.
     """
     def __init__(self):
+        pins = {
+            "earpiece": 22,
+            "digits" : 17,
+            "dialling": 27
+        }
         super(AstralHAL, self).__init__()
 
     def something_astral_specific(self):
@@ -145,6 +138,7 @@ class AstralHAL(HardwareAbstractionLayer):
         """
         print 'Doing something!'
 
+
 class ElektriskHAL(HardwareAbstractionLayer):
     """
     Subclass of HardwareAbstractionLayer to support the dialer in the
@@ -152,7 +146,13 @@ class ElektriskHAL(HardwareAbstractionLayer):
     """
 
     def __init__(self):
+        self.pins = {
+            "earpiece": 3,
+            "digits": 4,
+            "dialling": None
+        }
         super(ElektriskHAL, self).__init__()
+        
 
     def something_aseb_specific(self):
         """

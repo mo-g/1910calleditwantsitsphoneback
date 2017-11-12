@@ -59,7 +59,7 @@ class TelephoneDaemon(object):
         # TODO: Select tone/hardware ring when latter is implemented.
         self.app_ringer = AlsaRinger(self.config["soundfiles"],
                                      self.config["alsadevices"])
-        self.app_hal = HardwareAbstractionLayer()
+        self.app_hal = AstralHAL()
         signal.signal(signal.SIGINT, self.sigint_received)
         #self.app_webserver = Webserver(self)  # Currently locks thread?
         self.app_hal.register_callbacks(self.digit_dialled,
