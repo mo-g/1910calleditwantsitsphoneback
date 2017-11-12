@@ -153,7 +153,7 @@ class TelephoneDaemon(object):
         The SIP client reports a dropped call.
         """
 
-    def sigint_received(self, signal_name, *args):
+    def sigint_received(self, signal_name, frame):
         """
         Catch a signal from outside app (Ctrl-C) and shutdown cleanly.
         """
