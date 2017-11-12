@@ -51,19 +51,19 @@ class HardwareAbstractionLayer(object):
     def __init__(self):
         GPIO.setmode(GPIO.BCM)  # Broadcom pin numbers.
 
-        GPIO.setup(self.pins[dialling], GPIO.IN) #Listen for dialling start/end.
-        GPIO.add_event_detect(self.pins[dialling],
+        GPIO.setup(self.pins["dialling"], GPIO.IN) #Listen for dialling start/end.
+        GPIO.add_event_detect(self.pins["dialling"],
                               GPIO.BOTH,
                               callback=self.dialling_state)
 
-        GPIO.setup(self.pins[digits], GPIO.IN) #Listen for digits.
-        GPIO.add_event_detect(self.pins[digits],
+        GPIO.setup(self.pins["digits"], GPIO.IN) #Listen for digits.
+        GPIO.add_event_detect(self.pins["digits"],
                               GPIO.BOTH,
                               callback=self.detect_clicks)
 
         # Listen for on/off hooks
-        GPIO.setup(self.pins[earpiece], GPIO.IN)
-        GPIO.add_event_detect(self.pins[earpiece],
+        GPIO.setup(self.pins["earpiece"], GPIO.IN)
+        GPIO.add_event_detect(self.pins["earpiece"],
                               GPIO.BOTH,
                               callback=self.earpiece_event,
                               bouncetime=100)  # Is bouncetime a debounce constant!?
