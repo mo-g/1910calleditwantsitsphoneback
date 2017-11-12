@@ -19,7 +19,7 @@ import yaml
 
 from phonedaemon.modules.Ringer import AlsaRinger
 from phonedaemon.modules.HardwareAbstractionLayer \
-    import HardwareAbstractionLayer
+    import AstralHAL, ElektriskHAL
 from phonedaemon.modules.DialTimer import DialTimer
 # from phonedaemon.modules.Webserver import Webserver
 # from phonedaemon.modules.pjsip.SipClient import SipClient
