@@ -62,7 +62,9 @@ class TelephoneDaemon(object):
         self.app_hal = HardwareAbstractionLayer()
         signal.signal(signal.SIGINT, self.sigint_received)
         #self.app_webserver = Webserver(self)  # Currently locks thread?
-        self.app_hal.register_callbacks()
+        self.app_hal.register_callbacks(self.digit_dialled,
+                                        self.earpiece_replaced,
+                                        self.earpiece_lifted)
 
 
         # TODO: We're going to ignore all SIP stuff till we have the HAL good.
@@ -95,6 +97,13 @@ class TelephoneDaemon(object):
         self.entered_digits = ""
         # Begin wait for dialling state.
 
+    def earpiece_replaced(self):
+        """
+        The user has replaced the earpiece. Whatever you're doing. stop.
+        Stop all tones, close SIP call, stop dialling.
+        """
+        self.app_ringer.stop_earpiece()
+
     def call_number(self):
         """
         The user has entered a number. Send to SIP or handle internally.
@@ -121,13 +130,6 @@ class TelephoneDaemon(object):
         print "[INFO] Got digit:", digit
         self.entered_digits += digit
         self.app_timer.reset()
-
-    def earpiece_replaced(self):
-        """
-        The user has replaced the earpiece. Whatever you're doing. stop.
-        Stop all tones, close SIP call, stop dialling.
-        """
-        self.app_ringer.stop_earpiece()
 
     def remote_busy(self):
         """
