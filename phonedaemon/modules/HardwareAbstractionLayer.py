@@ -52,18 +52,18 @@ class HardwareAbstractionLayer(object):
         GPIO.setmode(GPIO.BCM)  # Broadcom pin numbers.
 
         GPIO.setup(self.pin_dialling, GPIO.IN) #Listen for dialling start/end.
-        GPIO.add_event_detect(self.pin_dialling,
+        GPIO.add_event_detect(self.pins[dialling],
                               GPIO.BOTH,
                               callback=self.dialling_state)
 
         GPIO.setup(self.pin_digits, GPIO.IN) #Listen for digits.
-        GPIO.add_event_detect(self.pin_digits,
+        GPIO.add_event_detect(self.pins[digits],
                               GPIO.BOTH,
                               callback=self.detect_clicks)
 
         # Listen for on/off hooks
         GPIO.setup(self.pin_earpiece, GPIO.IN)
-        GPIO.add_event_detect(self.pin_earpiece,
+        GPIO.add_event_detect(self.pins[earpiece],
                               GPIO.BOTH,
                               callback=self.earpiece_event,
                               bouncetime=100)  # Is bouncetime a debounce constant!?
