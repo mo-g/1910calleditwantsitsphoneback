@@ -44,7 +44,7 @@ class TelephoneDaemon(object):
     app_timer = None
     app_ringer = None
 
-    incoming_call = False
+    ringing = False
 
     def __init__(self):
         print "[STARTUP]"
@@ -67,13 +67,12 @@ class TelephoneDaemon(object):
 
         # TODO: We're going to ignore all SIP stuff till we have the HAL good.
         """
-        self.app_sip_client = SipClient()
-        self.app_sip_client.SipRegister(self.config["sip"]["username"],
+        self.app_sipclient = SipClient()
+        self.app_sipclient.SipRegister(self.config["sip"]["username"],
                                         self.config["sip"]["hostname"],
                                         self.config["sip"]["password"])
-        self.app_sip_client.RegisterCallbacks(
-            OnIncomingCall=self.on_incoming_call,
-            OnOutgoingCall=self.on_outgoing_call,
+        self.app_sipclient.register_callbacks(incoming_call=self.incoming_call,
+                                              
             OnRemoteHungupCall=self.on_remote_hungup_call,
             OnSelfHungupCall=self.on_self_hungup_call)
 
@@ -89,7 +88,7 @@ class TelephoneDaemon(object):
         """
         print "[INFO] Handset lifted."
 
-        if self.incoming_call:
+        if self.ringing:
             # answer the call
             return None
 
@@ -114,7 +113,7 @@ class TelephoneDaemon(object):
         print "[INFO] Number not entered."
         self.app_ringer.play_error()
 
-    def digit_detected(self, digit):
+    def digit_dialled(self, digit):
         """
         The HAL has detected that a number has been dialled.
         Reset the timer and append the digit to the number to be dialled.
@@ -128,30 +127,51 @@ class TelephoneDaemon(object):
         The user has replaced the earpiece. Whatever you're doing. stop.
         Stop all tones, close SIP call, stop dialling.
         """
+        self.app_ringer.stop_earpiece()
 
-    def call_failed(self):
+    def remote_busy(self):
         """
-        The SIP client returned an error on dialling. Stop all tones and play
-        the error code.
+        The SIP user being called is engaged. Play busy tone and end.
         """
+        self.app_ringer.play_busy()
 
-    def call_received(self):
+    def incoming_call(self):
         """
         The SIP client reports an incoming call. Cancel dialling and play the
         ringtone. This should also trap the earpiece so that the call can be
         answered.
         """
+        self.app_ringer.play_ringtone()
+
+    def connected(self):
+        """
+        The SIP call in process is connected at the remote end. Stop playing
+        the ringing tone.
+        """
+        self.app_ringer.stop_earpiece()
 
     def remote_hangup(self):
         """
         The SIP client reports that the call terminated normally by remote
         hang up. Play the dialtone for retro fun.
         """
+        if self.ringing:
+            self.app_ringer.stop_ringer()
+            return None
+        self.app_ringer.stop_earpiece()
 
     def call_dropped(self):
         """
         The SIP client reports a dropped call.
         """
+        self.app_ringer.stop_earpiece()
+
+    def call_failed(self):
+        """
+        The SIP client returned an error on dialling. Stop all tones and play
+        the error code.
+        """
+        self.app_ringer.play_error()
 
     def sigint_received(self, signal_name, frame):
         """

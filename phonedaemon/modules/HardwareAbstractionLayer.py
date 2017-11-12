@@ -23,6 +23,20 @@ BCM_PINS = {
         "dialling": 27
     }
 }
+
+CONVERT = {
+    1:1,
+    2:2,
+    3:3,
+    4:4,
+    5:5,
+    6:6,
+    7:7,
+    8:8,
+    9:9,
+    10:0
+}
+
 PROJECT = "astral"
 
 
@@ -40,6 +54,13 @@ class HardwareAbstractionLayer(object):
 
     onhook_timer = None  # Timer object to ensure we're on hook
     debounce_timer = None  # Timer object for debounce cleaning.
+
+    dialling = False
+    hook = False
+
+    callback_digit = None
+    callback_onhook = None
+    callback_offhook = None
 
     def __init__(self):
         GPIO.setmode(GPIO.BCM)  # Broadcom pin numbers.
@@ -59,7 +80,7 @@ class HardwareAbstractionLayer(object):
         GPIO.add_event_detect(self.pin_earpiece,
                               GPIO.BOTH,
                               callback=self.earpiece_event,
-                              bouncetime=100)
+                              bouncetime=100)  # Is bouncetime a debounce constant!?
 
     def clean_exit(self):
         """
@@ -71,24 +92,44 @@ class HardwareAbstractionLayer(object):
         """
         GPIO detects whether the rotary dial is active.
         """
-        state = GPIO.input(channel)
+        if not GPIO.input(channel):
+            return None
+
+        if not self.dialling:
+            self.dialling = True
+        else:
+            pulses = self.pulse_count
+            if pulses % 2:
+                raise IOError("Count is not divisible by 2")
+            self.callback_digit(CONVERT[pulses])
 
     def detect_clicks(self, channel):
         """
         GPIO detects a state change on the rotary detection pin. This is where
         I count the clicks and assemble a digit from the data.
         """
+        if GPIO.input(channel):
+            self.pulse_count += 1
 
-    def earpiece_event(self):
+    def earpiece_event(self, channel):
         """
         GPIO detects a state change
         """
+        self.hook = bool(GPIO.input(channel))
 
-    def register_callbacks(self):
+        # Are we on hook or off hook?
+        # If off hook, look for the dialling state.
+
+    def register_callbacks(self,
+                           callback_digit,
+                           callback_onhook,
+                           callback_offhook):
         """
         Register callbacks for the interface with the calling application
         """
-
+        self.callback_digit = callback_digit
+        self.callback_onhook = callback_onhook
+        self.callback_offhook = callback_offhook
 
 class AstralHAL(HardwareAbstractionLayer):
     """
