@@ -50,7 +50,7 @@ class HardwareAbstractionLayer(object):
 
     def __init__(self):
         GPIO.setmode(GPIO.BCM)  # Broadcom pin numbers.
-
+        
         GPIO.setup(self.pins["dialling"], GPIO.IN) #Listen for dialling start/end.
         GPIO.add_event_detect(self.pins["dialling"],
                               GPIO.BOTH,
@@ -125,7 +125,7 @@ class AstralHAL(HardwareAbstractionLayer):
     the late period of Astral PLC.
     """
     def __init__(self):
-        pins = {
+        self.pins = {
             "earpiece": 22,
             "digits" : 17,
             "dialling": 27
