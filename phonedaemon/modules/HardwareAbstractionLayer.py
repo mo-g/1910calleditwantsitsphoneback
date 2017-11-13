@@ -34,7 +34,7 @@ class HardwareAbstractionLayer(object):
     callback_digit = None
     callback_onhook = None
     callback_offhook = None
-    
+
     pulse_table = {
         1:1,
         2:2,
@@ -50,7 +50,7 @@ class HardwareAbstractionLayer(object):
 
     def __init__(self):
         GPIO.setmode(GPIO.BCM)  # Broadcom pin numbers.
-        
+
         GPIO.setup(self.pins["dialling"], GPIO.IN) #Listen for dialling start/end.
         GPIO.add_event_detect(self.pins["dialling"],
                               GPIO.BOTH,
@@ -132,12 +132,6 @@ class AstralHAL(HardwareAbstractionLayer):
         }
         super(AstralHAL, self).__init__()
 
-    def something_astral_specific(self):
-        """
-        Do something specific to the Astral wall phone.
-        """
-        print 'Doing something!'
-
 
 class ElektriskHAL(HardwareAbstractionLayer):
     """
@@ -152,12 +146,5 @@ class ElektriskHAL(HardwareAbstractionLayer):
             "dialling": None
         }
         super(ElektriskHAL, self).__init__()
-        
-
-    def something_aseb_specific(self):
-        """
-        Do something specific to the AS Elektrisk Bureau desk phone.
-        """
-        print 'Doing something!'
 
 

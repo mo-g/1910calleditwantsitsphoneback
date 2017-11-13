@@ -57,8 +57,8 @@ class TelephoneDaemon(object):
 
         self.app_timer = DialTimer(timeout_length=self.dialling_timeout)
         # TODO: Select tone/hardware ring when latter is implemented.
-        self.app_ringer = AlsaRinger(self.config["soundfiles"],
-                                     self.config["alsadevices"])
+        self.app_ringer = AlsaRinger(sound_files=self.config["soundfiles"],
+                                     alsa_devices=self.config["alsadevices"])
         self.app_hal = AstralHAL()
         signal.signal(signal.SIGINT, self.sigint_received)
         #self.app_webserver = Webserver(self)  # Currently locks thread?
@@ -74,7 +74,6 @@ class TelephoneDaemon(object):
                                         self.config["sip"]["hostname"],
                                         self.config["sip"]["password"])
         self.app_sipclient.register_callbacks(incoming_call=self.incoming_call,
-                                              
             OnRemoteHungupCall=self.on_remote_hungup_call,
             OnSelfHungupCall=self.on_self_hungup_call)
 
@@ -143,7 +142,7 @@ class TelephoneDaemon(object):
         ringtone. This should also trap the earpiece so that the call can be
         answered.
         """
-        self.app_ringer.play_ringtone()
+        self.app_ringer.play_ringer()
 
     def connected(self):
         """
