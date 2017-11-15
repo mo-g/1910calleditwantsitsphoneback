@@ -26,7 +26,7 @@ from phonedaemon.modules.SipClient import SipClient, CallHandler, \
     AccountHandler
 
 
-CALLBACK_QUEUE = Queue.Queue()
+CALLBACK_QUEUE = Queue.Queue() # You know, I don't know why this is here?
 
 
 class TelephoneDaemon(object):
