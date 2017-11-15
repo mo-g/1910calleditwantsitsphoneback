@@ -212,7 +212,7 @@ class TelephoneDaemon(object):
             self.ringer.stop_ringer()
             return None
         self.ringer.stop_earpiece()
-        if not self.active_call.is_valid()
+        if not self.active_call.is_valid():
             self.active_call = None
 
     def call_dropped(self):
@@ -220,7 +220,7 @@ class TelephoneDaemon(object):
         The SIP client reports a dropped call.
         """
         self.ringer.stop_earpiece()
-        if not self.active_call.is_valid()
+        if not self.active_call.is_valid():
             self.active_call = None
 
     def call_failed(self):
@@ -229,7 +229,7 @@ class TelephoneDaemon(object):
         the error code.
         """
         self.ringer.play_error()
-        if not self.active_call.is_valid()
+        if not self.active_call.is_valid():
             self.active_call = None
 
     def sigint_received(self, signal_name, frame):
