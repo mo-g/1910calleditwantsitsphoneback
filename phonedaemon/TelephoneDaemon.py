@@ -101,8 +101,8 @@ class TelephoneDaemon(object):
         }
         self.account_handler.register_callbacks(**account_callbacks)
 
-        # self.sipclient.set_audio(self.config["alsadevices"]["earpiece"],
-        #                          self.config["alsadevices"]["mouthpiece"])
+        self.sipclient.set_audio(self.config["alsadevices"]["earpiece"],
+                                 self.config["alsadevices"]["mouthpiece"])
 
         login_hostname = self.config["sip"]["hostname"]
         if login_hostname[0:4] != "sip:":
