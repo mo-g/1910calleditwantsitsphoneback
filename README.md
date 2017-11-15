@@ -6,10 +6,9 @@ For consistency, I'm prototyping on a Raspberry Pi 3B, with a final target of a 
 
 It uses GPIO on Raspberry Pi to communicate with the rotary dial, and the onboard soundcard for ringtone. An i2s-soundcard is used for mic and handset audio. This was done to reduce latency risks vs USB audio and allow usb gadget use on the Pi 0 for admin access.
 
-Some configuration on the Raspberry Pi is needed to make everything work, including installing the dependencies and configuring PulseAudio and ALSA to enable software mixing of sounds. 
+Some configuration on the Raspberry Pi is needed to make everything work, including installing the dependencies and configuring PulseAudio to enable software mixing of sounds. 
 
-One key difference compared to the original app is that I'm finishing the pjsip and using ONLY that, as it's a standard library in the Raspbian repo's. Ideally, this software should be a matter of apt-get install and a git clone.
-
+One key difference compared to the original app is that I'm finishing the pjsip and using ONLY that, as it's a standard library in the Raspbian repo's. Ideally, this software should be a matter of apt-get install and a git clone. In fact, the code is already at the point where I've felt safe removing the Linphone backend entirely! Nothing is finished yet, but, the pjsip code can register, dial out, and in theory receive calls. That's enough!
 
 ---
 
@@ -29,6 +28,34 @@ playing simulated bell tones. (Uses BCM DAC)
 
 ---
 
+## Raspberry Pi pin-outs
+
+### Fe-Pi i2s ADAC
+* SDA (BCM 2, Board 3)
+* SCL (BCM 3, Board 5)
+* BCLK (BCM 18, Board 12)
+* LRCLK (BCM 19, Board 35)
+* DIN (BCM 20, Board 38)
+* DOUT (BCM 21, Board 40)
+
+### Hardware Switches
+* Rotary pulses (BCM 17, Board 11)
+* Dialling state (BCM 27, Board 13)
+* Earpiece hook (BCM 22, Board 15)
+
+### Pi Analogue Out for Ringer
+* PWM0 (BCM12, Board 32)
+* PWM1 (BCM13, Board 33)
+
+---
+
+## Pin mapping for Astral Rotary Encoder
+
+* Blue/Purple - Closed when encoder is at rest. Acts as a start-and-end-of-dialling trigger.
+* Green/Gray - Normally open, closes to send a pulse.
+
+---
+
 ## Raspberry Pi Setup
 
 Main modifications: overlays for gadget ethernet mode (Pi 0W only), and the Fe-Pi.
@@ -45,9 +72,9 @@ Avahi and SSH-Server should be running and configured so that admin/user can con
 
 Some libraries are required, but are available as raspbian packages:
 
-sudo apt-get install git python-yaml python-pjproject python-tornado python-alsaaudio
+sudo apt-get install git python-yaml python-pjproject python-tornado python-alsaaudio pulseaudio
 
-I'm looking into avoiding the use of pulseaudio if possible, because pulseaudio makes configuration and admin of sounds devices way harder.
+Pulseaudio turned out to be necessary, as pjsip doesn't support ALSA dmix audio outputs. It's up to the end-user to configure ALSA and pulseaudio targets for their hardware, I made it up as I went along and have no idea why or how it works. Pulseaudio should be set to manage the earphone, the ringer (if using AlsaRinger) can have it's own ALSA connection all by itself.
 
 ---
 
@@ -92,9 +119,9 @@ At this point I have a working IO library ( Rio :) ), with working and testable 
 
 * Complete web interface for remote config of SIP account and api/web-controlled dialling (for when one is too lazy to actually dial, or for use with an electronic phonebook.)
 
-* Complete work to use pjsip instead of linphone (cleanliness, integration).
-
 * Modify to allow multiple SIP accounts with rotary-control and dialtone feedback.
+
+* Support bluetooth handsfree with web pairing and automatic switching.
 
 * ~~Breakout ringtone to support using high voltage bells (include Open Hardware circuit diagram.)~~ I'd still like to do this, but the phone I'm using turns out to just have fake bells and a speaker on the back, so I won't be implementing it for this build.
 
