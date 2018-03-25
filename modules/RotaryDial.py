@@ -1,102 +1,84 @@
-# Rotary Dial Parser
-# Expects the following hardware rules:
-# 1 is 1 pulse
-# 9 is 9 pulses
-# 0 is 10 pulses
-
 import RPi.GPIO as GPIO
 from threading import Timer
 import time
+from Rio import *
 
 class RotaryDial:
-    
-    # We'll be reading BCM GPIO 4 (pin 7 on board)
-    pin_rotary = 4
-
-    # We'll be reading on/off hook events from BCM GPIO 3
-    pin_onhook = 3
-
-    # After 900ms, we assume the rotation is done and we get
-    # the final digit. 
-    digit_timeout = 0.9
-
-    # We keep a counter to count each pulse.
-    current_digit = 0
-
-    # Simple timer for handling the number callback
-    number_timeout = None
-
-    last_input = 0
-
-    # Timer to ensure we're on hook
-    onhook_timer = None
+ 
+    bounce_time = 25  # ms
     should_verify_hook = True
 
-    def __init__(self):
-        # Set GPIO mode to Broadcom SOC numbering
-        GPIO.setmode(GPIO.BCM)
+    def __init__(self, config):
+        self.config = config
+        Rio.init(GPIO.BOARD)
 
-        # Listen for rotary movements
-        GPIO.setup(self.pin_rotary, GPIO.IN)
-        GPIO.add_event_detect(self.pin_rotary, GPIO.BOTH, callback = self.NumberCounter)
-        
-        # Listen for on/off hooks
-        GPIO.setup(self.pin_onhook, GPIO.IN)
-        GPIO.add_event_detect(self.pin_onhook, GPIO.BOTH, callback = self.HookEvent, bouncetime=100)
-        
-        self.onhook_timer = Timer(2, self.verifyHook)
-        self.onhook_timer.start()
+        self.rotation = Rin(self.config["pins"]["rotation_in"], bounce_interval=self.bounce_time)
+        self.pulse = Rin(self.config["pins"]["pulse_in"], bounce_interval=self.bounce_time)
+        self.hook = Rin(self.config["pins"]["hook_in"], bounce_interval=self.bounce_time)
 
-    # Handle counting of rotary movements and respond with digit after timeout
-    def NumberCounter(self, channel):
-        input = GPIO.input(self.pin_rotary)
-        #print "[INPUT] %s (%s)" % (input, channel)
-        if input and not self.last_input:
-            self.current_digit += 1
+        self.rotation_led = Rout(self.config["pins"]["rotation_out"])
+        self.pulse_led = Rout(self.config["pins"]["pulse_out"])
+        self.hook_led = Rout(self.config["pins"]["hook_out"])
 
-            if self.number_timeout is not None:
-                self.number_timeout.cancel()
+        self.rotation_led.set(not self.rotation.state())
+        self.pulse_led.set(self.pulse.state())
 
-            self.number_timeout = Timer(self.digit_timeout, self.FoundNumber)
-            self.number_timeout.start()
-        self.last_input = input
-   #     time.sleep(0.002)
+        self.rotation.changed = self.rotation_changed
+        self.pulse.changed = self.pulse_changed
+        self.hook.changed = self.hook_changed
 
-    # Wrapper around the off/on hook event 
-    def HookEvent(self, channel):
-        input = GPIO.input(self.pin_onhook)
-        if input:
+        self.pulses = 0
+
+    def hook_changed(self, new_state, event_time, previous_state_duration):
+        self.hook_led.set(new_state)
+        if new_state == 1:
             self.hook_state = 1
-            self.OffHookCallback()
+            self.OnHookCallback()
+            
         else:
             self.hook_state = 0
-            self.OnHookCallback()
+            self.OffHookCallback()
 
     def StopVerifyHook(self):
         self.should_verify_hook = False
 
     def verifyHook(self):
         while self.should_verify_hook:
-            state = GPIO.input(self.pin_onhook) 
+            state = GPIO.input(self.config["pins"]["hook_in"])
             self.OnVerifyHook(state)
             time.sleep(1)
 
-    # When the rotary movement has timed out, we callback with the final digit
-    def FoundNumber(self):
-        if self.current_digit == 10:
-            self.current_digit = 0
-        self.NumberCallback(self.current_digit)
-        self.current_digit = 0
+    def pulse_changed(self, new_state, event_time, previous_state_duration):
+        self.pulse_led.set(new_state)
+        if new_state == 1:
+            self.pulses += 1
+
+    def rotation_changed(self, new_state, event_time, previous_state_duration):
+        self.rotation_led.set(not new_state)
+
+        if new_state == 0:
+            # rotation_started
+            self.pulses = 0
+        else:
+            if self.pulses == 0 or self.pulses > 10:
+                if self.rotation_problem:
+                    self.rotation_problem(self.pulses)
+            else:
+                self.rotation_finished(self.pulses % 10)
 
     # Handles the callbacks we're supplying
-    def RegisterCallback(self, NumberCallback, OffHookCallback, OnHookCallback, OnVerifyHook):
+    def RegisterCallback(self, NumberCallback, OffHookCallback, OnHookCallback, OnVerifyHook, OnRotationProblem=None):
         self.NumberCallback = NumberCallback
         self.OffHookCallback = OffHookCallback
         self.OnHookCallback = OnHookCallback
         self.OnVerifyHook = OnVerifyHook
 
-        input = GPIO.input(self.pin_onhook)
+        self.rotation_finished = NumberCallback
+        self.rotation_problem = OnRotationProblem
+
+        input = GPIO.input(self.config["pins"]["hook_in"])
+        print input
         if input:
-            self.OffHookCallback()
-        else:
             self.OnHookCallback()
+        else:
+            self.OffHookCallback()

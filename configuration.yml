@@ -6,8 +6,22 @@ soundfiles:
     timeout: /home/pi/telefon/ringtones/roh.wav
     dialtone: /home/pi/telefon/ringtones/dialtone.wav
 
+# PINS //Raspberry Pi scheme
+# IN  | OUT | Color  | Role     | Initial state
+# 13  | 23  | Blue   | Rotation | High
+# 11  | 24  | Green  | Pulse    | Low
+# 15  | 22  | Red    | Hook     | Low
+pins:
+    rotation_in: 13
+    pulse_in: 11
+    hook_in:  15
+    rotation_out: 23
+    pulse_out: 24
+    hook_out: 22
+
 sip:
     username: sip_username
     password: sip_password
     hostname: sip.example.com
     port: 5060
+    
