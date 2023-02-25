@@ -26,7 +26,7 @@ from phonedaemon.modules.SipClient import SipClient, CallHandler, \
     AccountHandler
 
 
-CALLBACK_QUEUE = Queue.Queue()
+CALLBACK_QUEUE = Queue.Queue() # You know, I don't know why this is here?
 
 
 class TelephoneDaemon(object):
@@ -101,8 +101,8 @@ class TelephoneDaemon(object):
         }
         self.account_handler.register_callbacks(**account_callbacks)
 
-        # self.sipclient.set_audio(self.config["alsadevices"]["earpiece"],
-        #                          self.config["alsadevices"]["mouthpiece"])
+        self.sipclient.set_audio(self.config["alsadevices"]["earpiece"],
+                                 self.config["alsadevices"]["mouthpiece"])
 
         login_hostname = self.config["sip"]["hostname"]
         if login_hostname[0:4] != "sip:":
@@ -212,7 +212,7 @@ class TelephoneDaemon(object):
             self.ringer.stop_ringer()
             return None
         self.ringer.stop_earpiece()
-        if not self.active_call.is_valid()
+        if not self.active_call.is_valid():
             self.active_call = None
 
     def call_dropped(self):
@@ -220,7 +220,7 @@ class TelephoneDaemon(object):
         The SIP client reports a dropped call.
         """
         self.ringer.stop_earpiece()
-        if not self.active_call.is_valid()
+        if not self.active_call.is_valid():
             self.active_call = None
 
     def call_failed(self):
@@ -229,7 +229,7 @@ class TelephoneDaemon(object):
         the error code.
         """
         self.ringer.play_error()
-        if not self.active_call.is_valid()
+        if not self.active_call.is_valid():
             self.active_call = None
 
     def sigint_received(self, signal_name, frame):
